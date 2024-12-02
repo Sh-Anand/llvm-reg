@@ -70,7 +70,6 @@
 #include <cassert>
 #include <cstdint>
 #include <utility>
-
 using namespace llvm;
 
 #define DEBUG_TYPE "regalloc"

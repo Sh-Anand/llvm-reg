@@ -17,6 +17,7 @@
 #include "llvm/CodeGen/LiveIntervalUnion.h"
 #include "llvm/CodeGen/LiveIntervals.h"
 #include "llvm/CodeGen/MachineFunction.h"
+#include "llvm/CodeGen/RegisterBankInfo.h"
 #include "llvm/CodeGen/TargetRegisterInfo.h"
 #include "llvm/CodeGen/TargetSubtargetInfo.h"
 #include "llvm/CodeGen/VirtRegMap.h"
@@ -62,6 +63,8 @@ void LiveRegMatrix::init(MachineFunction &MF, LiveIntervals &pLIS,
   TRI = MF.getSubtarget().getRegisterInfo();
   LIS = &pLIS;
   VRM = &pVRM;
+  RBI = MF.getSubtarget().getRegBankInfo();
+  MRI = &pVRM.getRegInfo();
 
   unsigned NumRegUnits = TRI->getNumRegUnits();
   if (NumRegUnits != Matrix.size())
@@ -194,6 +197,9 @@ LiveRegMatrix::checkInterference(const LiveInterval &VirtReg,
                                  MCRegister PhysReg) {
   if (VirtReg.empty())
     return IK_Free;
+
+  if(RBI->getRegBank(VirtReg.reg(), *MRI, *TRI) == RBI->getRegBank(Register(PhysReg), *MRI, *TRI))
+    return IK_RegBank;
 
   // Regmask interference is the fastest check.
   if (checkRegMaskInterference(VirtReg, PhysReg))
