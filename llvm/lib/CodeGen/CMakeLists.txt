@@ -207,6 +207,8 @@ add_llvm_component_library(LLVMCodeGen
   ResetMachineFunctionPass.cpp
   RegisterBank.cpp
   RegisterBankInfo.cpp
+  RegisterStripe.cpp
+  RegisterStripeInfo.cpp
   SafeStack.cpp
   SafeStackLayout.cpp
   SanitizerBinaryMetadata.cpp

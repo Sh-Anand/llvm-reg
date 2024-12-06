@@ -228,6 +228,7 @@ LiveRegMatrix::checkInterference(const LiveInterval &VirtReg,
   for (auto &conflictingReg : conflictingRegs) {
     assert(conflictingReg.isVirtual() && "Physical register in bank conflict set");
     if (Register PhysConflictReg = VRM->getPhys(conflictingReg)) {
+      LLVM_DEBUG(dbgs() << "regbanks: " << RBI->getRegBank(PhysConflictReg, *MRI, *TRI)->getName() << " " << RBI->getRegBank(PhysReg, *MRI, *TRI)->getName() << '\n');
       if (RBI->getRegBank(PhysConflictReg, *MRI, *TRI) == RBI->getRegBank(PhysReg, *MRI, *TRI)) 
         return IK_RegBank;
     }

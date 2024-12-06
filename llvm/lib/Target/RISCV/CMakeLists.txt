@@ -13,6 +13,8 @@ tablegen(LLVM RISCVGenMCCodeEmitter.inc -gen-emitter)
 tablegen(LLVM RISCVGenMCPseudoLowering.inc -gen-pseudo-lowering)
 tablegen(LLVM RISCVGenRegisterBank.inc -gen-register-bank)
 tablegen(LLVM RISCVGenRegisterInfo.inc -gen-register-info)
+tablegen(LLVM RISCVGenRegisterStripe.inc -gen-register-stripe)
+
 tablegen(LLVM RISCVGenSearchableTables.inc -gen-searchable-tables)
 tablegen(LLVM RISCVGenSubtargetInfo.inc -gen-subtarget)
 
@@ -69,6 +71,7 @@ add_llvm_target(RISCVCodeGen
   GISel/RISCVO0PreLegalizerCombiner.cpp
   GISel/RISCVPreLegalizerCombiner.cpp
   GISel/RISCVRegisterBankInfo.cpp
+  GISel/RISCVRegisterStripeInfo.cpp
 
   LINK_COMPONENTS
   Analysis
