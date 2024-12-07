@@ -1910,6 +1910,9 @@ include "llvm/Target/TargetSelectionDAG.td"
 //
 include "llvm/Target/GlobalISel/RegisterBank.td"
 
+
+include "llvm/Target/GlobalISel/RegisterStripe.td"
+
 //===----------------------------------------------------------------------===//
 // Pull in the common support for DAG isel generation.
 //

@@ -60,6 +60,7 @@ executable("llvm-tblgen") {
     "OptionRSTEmitter.cpp",
     "PseudoLoweringEmitter.cpp",
     "RegisterBankEmitter.cpp",
+    "RegisterStripeEmitter.cpp",
     "RegisterInfoEmitter.cpp",
     "SearchableTableEmitter.cpp",
     "SubtargetEmitter.cpp",

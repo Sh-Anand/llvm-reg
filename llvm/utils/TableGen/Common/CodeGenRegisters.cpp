@@ -1185,6 +1185,27 @@ CodeGenRegisterCategory::CodeGenRegisterCategory(CodeGenRegBank &RegBank,
 //                               CodeGenRegBank
 //===----------------------------------------------------------------------===//
 
+CodeGenRegStripe::CodeGenRegStripe(const RecordKeeper &Records,
+                               const CodeGenHwModes &Modes)
+    : CGH(Modes) {
+  // Configure register Sets to understand register classes and tuples.
+  Sets.addFieldExpander("RegisterClass", "MemberList");
+  Sets.addFieldExpander("CalleeSavedRegs", "SaveList");
+  Sets.addExpander("RegisterTuples",
+                   std::make_unique<TupleExpander>(SynthDefs));
+  // Read in register class definitions.
+  ArrayRef<const Record *> RCs =
+      Records.getAllDerivedDefinitions("RegisterClass");
+  if (RCs.empty())
+    PrintFatalError("No 'RegisterClass' subclasses defined!");
+
+  // Allocate user-defined register classes.
+  for (auto *R : RCs) {
+    CodeGenRegisterClass &RC = RegClasses.back();
+    LLVM_DEBUG(dbgs() << "RegisterClass: " << RC.getName() << "\n");
+  }
+}
+
 CodeGenRegBank::CodeGenRegBank(const RecordKeeper &Records,
                                const CodeGenHwModes &Modes)
     : CGH(Modes) {
@@ -1265,32 +1286,6 @@ CodeGenRegBank::CodeGenRegBank(const RecordKeeper &Records,
                         SRI.ConcatenationOf.begin(), SRI.ConcatenationOf.end()),
                     &SRI));
   }
-
-  // Infer even more sub-registers by combining leading super-registers.
-  for (auto &Reg : Registers)
-    if (Reg.CoveredBySubRegs)
-      Reg.computeSecondarySubRegs(*this);
-
-  // After the sub-register graph is complete, compute the topologically
-  // ordered SuperRegs list.
-  for (auto &Reg : Registers)
-    Reg.computeSuperRegs(*this);
-
-  // For each pair of Reg:SR, if both are non-artificial, mark the
-  // corresponding sub-register index as non-artificial.
-  for (auto &Reg : Registers) {
-    if (Reg.Artificial)
-      continue;
-    for (auto P : Reg.getSubRegs()) {
-      const CodeGenRegister *SR = P.second;
-      if (!SR->Artificial)
-        P.first->Artificial = false;
-    }
-  }
-
-  // Native register units are associated with a leaf register. They've all been
-  // discovered now.
-  NumNativeRegUnits = RegUnits.size();
 
   // Read in register class definitions.
   ArrayRef<const Record *> RCs =
@@ -1379,6 +1374,13 @@ CodeGenRegBank::getOrCreateSubClass(const CodeGenRegisterClass *RC,
 }
 
 CodeGenRegisterClass *CodeGenRegBank::getRegClass(const Record *Def) const {
+  if (CodeGenRegisterClass *RC = Def2RC.lookup(Def))
+    return RC;
+
+  PrintFatalError(Def->getLoc(), "Not a known RegisterClass!");
+}
+
+CodeGenRegisterClass *CodeGenRegStripe::getRegClass(const Record *Def) const {
   if (CodeGenRegisterClass *RC = Def2RC.lookup(Def))
     return RC;
 

@@ -64,6 +64,7 @@ add_tablegen(llvm-tblgen LLVM
   PseudoLoweringEmitter.cpp
   RegisterBankEmitter.cpp
   RegisterInfoEmitter.cpp
+  RegisterStripeEmitter.cpp
   RISCVTargetDefEmitter.cpp
   SearchableTableEmitter.cpp
   SubtargetEmitter.cpp

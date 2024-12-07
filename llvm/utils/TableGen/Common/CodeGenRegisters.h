@@ -860,6 +860,108 @@ public:
   void printRegUnitName(unsigned Unit) const;
 };
 
+class CodeGenRegStripe {
+  SetTheory Sets;
+
+  const CodeGenHwModes &CGH;
+
+  std::deque<CodeGenSubRegIndex> SubRegIndices;
+  DenseMap<const Record *, CodeGenSubRegIndex *> Def2SubRegIdx;
+
+  CodeGenSubRegIndex *createSubRegIndex(StringRef Name, StringRef NameSpace);
+
+  typedef std::map<SmallVector<CodeGenSubRegIndex *, 8>, CodeGenSubRegIndex *>
+      ConcatIdxMap;
+  ConcatIdxMap ConcatIdx;
+
+  // Registers.
+  std::deque<CodeGenRegister> Registers;
+  StringMap<CodeGenRegister *> RegistersByName;
+  DenseMap<const Record *, CodeGenRegister *> Def2Reg;
+  unsigned NumNativeRegUnits;
+
+  std::map<TopoSigId, unsigned> TopoSigs;
+
+  // Includes native (0..NumNativeRegUnits-1) and adopted register units.
+  SmallVector<RegUnit, 8> RegUnits;
+
+  // Register classes.
+  std::list<CodeGenRegisterClass> RegClasses;
+  DenseMap<const Record *, CodeGenRegisterClass *> Def2RC;
+  typedef std::map<CodeGenRegisterClass::Key, CodeGenRegisterClass *> RCKeyMap;
+  RCKeyMap Key2RC;
+
+  // Register categories.
+  std::list<CodeGenRegisterCategory> RegCategories;
+  using RCatKeyMap =
+      std::map<CodeGenRegisterClass::Key, CodeGenRegisterCategory *>;
+  RCatKeyMap Key2RCat;
+
+  // Remember each unique set of register units. Initially, this contains a
+  // unique set for each register class. Simliar sets are coalesced with
+  // pruneUnitSets and new supersets are inferred during computeRegUnitSets.
+  std::vector<RegUnitSet> RegUnitSets;
+
+  // Map RegisterClass index to the index of the RegUnitSet that contains the
+  // class's units and any inferred RegUnit supersets.
+  //
+  // NOTE: This could grow beyond the number of register classes when we map
+  // register units to lists of unit sets. If the list of unit sets does not
+  // already exist for a register class, we create a new entry in this vector.
+  std::vector<std::vector<unsigned>> RegClassUnitSets;
+
+  // Give each register unit set an order based on sorting criteria.
+  std::vector<unsigned> RegUnitSetOrder;
+
+  // Keep track of synthesized definitions generated in TupleExpander.
+  std::vector<std::unique_ptr<Record>> SynthDefs;
+
+public:
+  CodeGenRegStripe(const RecordKeeper &, const CodeGenHwModes &);
+  CodeGenRegStripe(CodeGenRegStripe &) = delete;
+
+  SetTheory &getSets() { return Sets; }
+
+  const CodeGenHwModes &getHwModes() const { return CGH; }
+
+  // Find a register from its Record def.
+  CodeGenRegister *getReg(const Record *);
+
+  // Get a Register's index into the Registers array.
+  unsigned getRegIndex(const CodeGenRegister *Reg) const {
+    return Reg->EnumValue - 1;
+  }
+
+  RegUnit &getRegUnit(unsigned RUID) { return RegUnits[RUID]; }
+  const RegUnit &getRegUnit(unsigned RUID) const { return RegUnits[RUID]; }
+
+  std::list<CodeGenRegisterClass> &getRegClasses() { return RegClasses; }
+
+  const std::list<CodeGenRegisterClass> &getRegClasses() const {
+    return RegClasses;
+  }
+
+  std::list<CodeGenRegisterCategory> &getRegCategories() {
+    return RegCategories;
+  }
+
+  const std::list<CodeGenRegisterCategory> &getRegCategories() const {
+    return RegCategories;
+  }
+
+
+  unsigned getRegSetIDAt(unsigned Order) const {
+    return RegUnitSetOrder[Order];
+  }
+
+  const RegUnitSet &getRegSetAt(unsigned Order) const {
+    return RegUnitSets[RegUnitSetOrder[Order]];
+  }
+
+  CodeGenRegisterClass *getRegClass(const Record *) const;
+
+};
+
 } // end namespace llvm
 
 #endif // LLVM_UTILS_TABLEGEN_COMMON_CODEGENREGISTERS_H

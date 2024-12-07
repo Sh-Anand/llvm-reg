@@ -163,6 +163,12 @@ CodeGenRegBank &CodeGenTarget::getRegBank() const {
   return *RegBank;
 }
 
+CodeGenRegStripe &CodeGenTarget::getRegStripe() const {
+  if (!RegStripe)
+    RegStripe = std::make_unique<CodeGenRegStripe>(Records, getHwModes());
+  return *RegStripe;
+}
+
 std::optional<CodeGenRegisterClass *> CodeGenTarget::getSuperRegForSubReg(
     const ValueTypeByHwMode &ValueTy, CodeGenRegBank &RegBank,
     const CodeGenSubRegIndex *SubIdx, bool MustBeAllocatable) const {

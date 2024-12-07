@@ -37,6 +37,7 @@ namespace llvm {
 class RecordKeeper;
 class Record;
 class CodeGenRegBank;
+class CodeGenRegStripe;
 class CodeGenRegister;
 class CodeGenRegisterClass;
 class CodeGenSchedModels;
@@ -61,6 +62,7 @@ class CodeGenTarget {
   mutable DenseMap<const Record *, std::unique_ptr<CodeGenInstruction>>
       Instructions;
   mutable std::unique_ptr<CodeGenRegBank> RegBank;
+  mutable std::unique_ptr<CodeGenRegStripe> RegStripe;
   mutable ArrayRef<const Record *> RegAltNameIndices;
   mutable SmallVector<ValueTypeByHwMode, 8> LegalValueTypes;
   CodeGenHwModes CGH;
@@ -121,6 +123,9 @@ public:
 
   /// getRegBank - Return the register bank description.
   CodeGenRegBank &getRegBank() const;
+
+  /// getRegStripe - Return the register stripe description.
+  CodeGenRegStripe &getRegStripe() const;
 
   /// Return the largest register class on \p RegBank which supports \p Ty and
   /// covers \p SubIdx if it exists.
